@@ -23,5 +23,6 @@ namespace PersonalFinanceApi.Interfaces
 
         Task<T> GetByIdWithIncludeAsync(int id, params Expression<Func<T, object>>[] includeProperties);
         Task<IEnumerable<T>> GetAllWithIncludeAsync(params Expression<Func<T, object>>[] includeProperties);
+        Task<int> SaveChangesAsync();
     }
 }

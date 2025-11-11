@@ -99,5 +99,9 @@ namespace PersonalFinanceApi.Data
 
             return await query.ToListAsync();
         }
+        public virtual async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
     }
 }
