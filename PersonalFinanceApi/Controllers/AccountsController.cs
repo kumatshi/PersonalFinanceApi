@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonalFinanceApi.DTOs;
 using PersonalFinanceApi.Interfaces;
@@ -9,6 +10,7 @@ namespace PersonalFinanceApi.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Authorize]
     public class AccountsController : ControllerBase
     {
         private readonly IAccountRepository _accountRepository;
@@ -32,8 +34,6 @@ namespace PersonalFinanceApi.Controllers
             {
                 var accounts = await _accountRepository.GetAllAsync();
                 var accountDtos = _mapper.Map<IEnumerable<AccountDto>>(accounts);
-
-                // Заполняем количество транзакций для каждого счета
                 foreach (var accountDto in accountDtos)
                 {
                     accountDto.TransactionCount = await _accountRepository.CountAsync(
@@ -168,7 +168,6 @@ namespace PersonalFinanceApi.Controllers
         {
             try
             {
-                // Валидация
                 if (string.IsNullOrWhiteSpace(createDto.Name))
                 {
                     var badRequestResponse = new ApiResponse<AccountDto>
@@ -279,8 +278,6 @@ namespace PersonalFinanceApi.Controllers
                     };
                     return NotFound(notFoundResponse);
                 }
-
-                // Проверяем, есть ли связанные транзакции
                 var hasTransactions = await _accountRepository.AccountHasTransactionsAsync(id);
                 if (hasTransactions)
                 {

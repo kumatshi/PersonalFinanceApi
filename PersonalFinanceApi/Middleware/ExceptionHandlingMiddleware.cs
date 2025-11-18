@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using Microsoft.IdentityModel.Tokens;
 using PersonalFinanceApi.DTOs;
 
 namespace PersonalFinanceApi.Middleware
@@ -36,20 +37,41 @@ namespace PersonalFinanceApi.Middleware
         private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
             var response = new ErrorResponse
             {
                 Success = false,
-                Message = "Произошла внутренняя ошибка сервера",
-                ErrorCode = "INTERNAL_SERVER_ERROR",
                 Timestamp = DateTime.UtcNow
             };
+
+            switch (exception)
+            {
+                case UnauthorizedAccessException:
+                    context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    response.Message = "Доступ запрещен";
+                    response.ErrorCode = "UNAUTHORIZED";
+                    break;
+
+                case SecurityTokenException:
+                    context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    response.Message = "Недействительный токен";
+                    response.ErrorCode = "INVALID_TOKEN";
+                    break;
+
+                default:
+                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    response.Message = "Произошла внутренняя ошибка сервера";
+                    response.ErrorCode = "INTERNAL_SERVER_ERROR";
+                    break;
+            }
 
             if (_env.IsDevelopment())
             {
                 response.StackTrace = exception.StackTrace;
-                response.Message = exception.Message;
+                if (string.IsNullOrEmpty(response.Message) || response.Message == "Произошла внутренняя ошибка сервера")
+                {
+                    response.Message = exception.Message;
+                }
             }
 
             var options = new JsonSerializerOptions

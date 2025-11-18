@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PersonalFinanceApi.DTOs;
 using PersonalFinanceApi.Interfaces;
 
@@ -7,6 +8,7 @@ namespace PersonalFinanceApi.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Authorize]
     public class TransactionsController : ControllerBase
     {
         private readonly ITransactionService _transactionService;
@@ -38,6 +40,7 @@ namespace PersonalFinanceApi.Controllers
         /// Получить транзакцию по ID
         /// </summary>
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin,Premium")]
         [ProducesResponseType(typeof(ApiResponse<TransactionDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]

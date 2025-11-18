@@ -1,14 +1,17 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonalFinanceApi.DTOs;
 using PersonalFinanceApi.Interfaces;
 using PersonalFinanceApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace PersonalFinanceApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Authorize]
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryRepository _categoryRepository;
@@ -33,7 +36,6 @@ namespace PersonalFinanceApi.Controllers
                 var categories = await _categoryRepository.GetAllAsync();
                 var categoryDtos = _mapper.Map<IEnumerable<CategoryDto>>(categories);
 
-                // Заполняем количество транзакций для каждой категории
                 foreach (var categoryDto in categoryDtos)
                 {
                     categoryDto.TransactionCount = await _categoryRepository.CountAsync(
@@ -190,7 +192,6 @@ namespace PersonalFinanceApi.Controllers
         {
             try
             {
-                // Валидация
                 if (string.IsNullOrWhiteSpace(createDto.Name))
                 {
                     var badRequestResponse = new ApiResponse<CategoryDto>
@@ -302,7 +303,6 @@ namespace PersonalFinanceApi.Controllers
                     return NotFound(notFoundResponse);
                 }
 
-                // Проверяем, есть ли связанные транзакции
                 var hasTransactions = await _categoryRepository.CategoryHasTransactionsAsync(id);
                 if (hasTransactions)
                 {

@@ -7,6 +7,8 @@
         public decimal Balance { get; set; }
         public string Currency { get; set; } = "RUB";
         public AccountType Type { get; set; }
+        public int UserId { get; set; }
+        public User User { get; set; } = null!;
 
         public List<Transaction> Transactions { get; set; } = new List<Transaction>();
     }

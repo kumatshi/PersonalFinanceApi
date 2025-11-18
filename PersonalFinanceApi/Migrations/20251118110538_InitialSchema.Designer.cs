@@ -9,11 +9,11 @@ using PersonalFinanceApi.Data;
 
 #nullable disable
 
-namespace PersonalFinanceApi.Data.Migrations
+namespace PersonalFinanceApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251029113114_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251118110538_InitialSchema")]
+    partial class InitialSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -47,9 +47,12 @@ namespace PersonalFinanceApi.Data.Migrations
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Type");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Accounts");
                 });
@@ -82,8 +85,6 @@ namespace PersonalFinanceApi.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Type");
-
                     b.ToTable("Categories");
                 });
 
@@ -115,17 +116,67 @@ namespace PersonalFinanceApi.Data.Migrations
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("Date");
-
-                    b.HasIndex("Type");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Transactions");
+                });
+
+            modelBuilder.Entity("PersonalFinanceApi.Models.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("PersonalFinanceApi.Models.Account", b =>
+                {
+                    b.HasOne("PersonalFinanceApi.Models.User", "User")
+                        .WithMany("Accounts")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("PersonalFinanceApi.Models.Transaction", b =>
@@ -142,9 +193,17 @@ namespace PersonalFinanceApi.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("PersonalFinanceApi.Models.User", "User")
+                        .WithMany("Transactions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Account");
 
                     b.Navigation("Category");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("PersonalFinanceApi.Models.Account", b =>
@@ -154,6 +213,13 @@ namespace PersonalFinanceApi.Data.Migrations
 
             modelBuilder.Entity("PersonalFinanceApi.Models.Category", b =>
                 {
+                    b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("PersonalFinanceApi.Models.User", b =>
+                {
+                    b.Navigation("Accounts");
+
                     b.Navigation("Transactions");
                 });
 #pragma warning restore 612, 618

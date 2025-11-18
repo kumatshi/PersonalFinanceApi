@@ -27,7 +27,13 @@ namespace PersonalFinanceApi.Mappings
 
             CreateMap<Account, AccountDto>()
                 .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()))
-                .ForMember(dest => dest.TransactionCount, opt => opt.Ignore()); 
+                .ForMember(dest => dest.TransactionCount, opt => opt.Ignore());
+
+            CreateMap<User, UserProfileDto>();
+            CreateMap<RegisterRequestDto, User>()
+                .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => UserRoles.User))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
 
             CreateMap<CreateAccountDto, Account>();
             CreateMap<UpdateAccountDto, Account>();
