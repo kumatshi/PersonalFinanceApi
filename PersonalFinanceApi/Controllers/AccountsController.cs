@@ -23,7 +23,7 @@ namespace PersonalFinanceApi.Controllers
         }
 
         /// <summary>
-        /// Получить список всех счетов
+        /// Получить список всех счетов (доступно всем аутентифицированным пользователям)
         /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<AccountDto>>), StatusCodes.Status200OK)]
@@ -63,7 +63,7 @@ namespace PersonalFinanceApi.Controllers
         }
 
         /// <summary>
-        /// Получить счет по ID
+        /// Получить счет по ID (доступно всем аутентифицированным пользователям)
         /// </summary>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ApiResponse<AccountDto>), StatusCodes.Status200OK)]
@@ -110,10 +110,12 @@ namespace PersonalFinanceApi.Controllers
         }
 
         /// <summary>
-        /// Получить сводную информацию по счетам
+        /// Получить сводную информацию по счетам (только для Premium и Admin)
         /// </summary>
         [HttpGet("summary")]
+        [Authorize(Roles = "Admin,Premium")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<object>>> GetAccountsSummary()
         {
@@ -158,7 +160,7 @@ namespace PersonalFinanceApi.Controllers
         }
 
         /// <summary>
-        /// Создать новый счет
+        /// Создать новый счет (доступно всем аутентифицированным пользователям)
         /// </summary>
         [HttpPost]
         [ProducesResponseType(typeof(ApiResponse<AccountDto>), StatusCodes.Status201Created)]
@@ -207,11 +209,12 @@ namespace PersonalFinanceApi.Controllers
         }
 
         /// <summary>
-        /// Обновить существующий счет
+        /// Обновить существующий счет (только для владельца счета или Admin)
         /// </summary>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ApiResponse<AccountDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<AccountDto>>> UpdateAccount(int id, UpdateAccountDto updateDto)
@@ -227,6 +230,13 @@ namespace PersonalFinanceApi.Controllers
                         Message = $"Счет с ID {id} не найден"
                     };
                     return NotFound(notFoundResponse);
+                }
+
+                // Проверка прав доступа
+                var currentUserId = GetCurrentUserId();
+                if (existingAccount.UserId != currentUserId && !User.IsInRole("Admin"))
+                {
+                    return Forbid();
                 }
 
                 _mapper.Map(updateDto, existingAccount);
@@ -258,10 +268,12 @@ namespace PersonalFinanceApi.Controllers
         }
 
         /// <summary>
-        /// Удалить счет
+        /// Удалить счет (только для Admin)
         /// </summary>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<bool>>> DeleteAccount(int id)
@@ -312,6 +324,15 @@ namespace PersonalFinanceApi.Controllers
 
                 return StatusCode(500, errorResponse);
             }
+        }
+
+        /// <summary>
+        /// Получить ID текущего пользователя из токена
+        /// </summary>
+        private int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            return int.Parse(userIdClaim?.Value ?? "0");
         }
     }
 }

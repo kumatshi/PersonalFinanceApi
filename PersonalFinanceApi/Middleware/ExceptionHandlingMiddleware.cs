@@ -59,9 +59,18 @@ namespace PersonalFinanceApi.Middleware
                     break;
 
                 default:
-                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                    response.Message = "Произошла внутренняя ошибка сервера";
-                    response.ErrorCode = "INTERNAL_SERVER_ERROR";
+                    if (exception.Message.Contains("Forbidden") || exception.Message.Contains("доступ запрещен"))
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        response.Message = "Недостаточно прав для доступа к ресурсу";
+                        response.ErrorCode = "FORBIDDEN";
+                    }
+                    else
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                        response.Message = "Произошла внутренняя ошибка сервера";
+                        response.ErrorCode = "INTERNAL_SERVER_ERROR";
+                    }
                     break;
             }
 

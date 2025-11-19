@@ -19,7 +19,7 @@ namespace PersonalFinanceApi.Controllers
         }
 
         /// <summary>
-        /// Получить список всех транзакций с пагинацией
+        /// Получить список всех транзакций с пагинацией (доступно всем аутентифицированным пользователям)
         /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<TransactionDto>>), StatusCodes.Status200OK)]
@@ -37,11 +37,12 @@ namespace PersonalFinanceApi.Controllers
         }
 
         /// <summary>
-        /// Получить транзакцию по ID
+        /// Получить транзакцию по ID (только для Premium и Admin)
         /// </summary>
         [HttpGet("{id}")]
         [Authorize(Roles = "Admin,Premium")]
         [ProducesResponseType(typeof(ApiResponse<TransactionDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<TransactionDto>>> GetTransaction(int id)
@@ -55,7 +56,7 @@ namespace PersonalFinanceApi.Controllers
         }
 
         /// <summary>
-        /// Создать новую транзакцию
+        /// Создать новую транзакцию (доступно всем аутентифицированным пользователям)
         /// </summary>
         [HttpPost]
         [ProducesResponseType(typeof(ApiResponse<TransactionDto>), StatusCodes.Status201Created)]
@@ -72,11 +73,12 @@ namespace PersonalFinanceApi.Controllers
         }
 
         /// <summary>
-        /// Обновить существующую транзакцию
+        /// Обновить существующую транзакцию (только для владельца или Admin)
         /// </summary>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ApiResponse<TransactionDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<TransactionDto>>> UpdateTransaction(int id, UpdateTransactionDto updateDto)
@@ -94,10 +96,12 @@ namespace PersonalFinanceApi.Controllers
         }
 
         /// <summary>
-        /// Удалить транзакцию
+        /// Удалить транзакцию (только для Admin)
         /// </summary>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<bool>>> DeleteTransaction(int id)
@@ -111,7 +115,7 @@ namespace PersonalFinanceApi.Controllers
         }
 
         /// <summary>
-        /// Получить транзакции по типу (доход/расход)
+        /// Получить транзакции по типу (доход/расход) (доступно всем аутентифицированным пользователям)
         /// </summary>
         [HttpGet("type/{type}")]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<TransactionDto>>), StatusCodes.Status200OK)]
@@ -130,7 +134,7 @@ namespace PersonalFinanceApi.Controllers
         }
 
         /// <summary>
-        /// Получить транзакции по счету
+        /// Получить транзакции по счету (доступно всем аутентифицированным пользователям)
         /// </summary>
         [HttpGet("account/{accountId}")]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<TransactionDto>>), StatusCodes.Status200OK)]
@@ -149,7 +153,7 @@ namespace PersonalFinanceApi.Controllers
         }
 
         /// <summary>
-        /// Получить транзакции по категории
+        /// Получить транзакции по категории (доступно всем аутентифицированным пользователям)
         /// </summary>
         [HttpGet("category/{categoryId}")]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<TransactionDto>>), StatusCodes.Status200OK)]
@@ -168,10 +172,12 @@ namespace PersonalFinanceApi.Controllers
         }
 
         /// <summary>
-        /// Получить финансовую сводку за период
+        /// Получить финансовую сводку за период (только для Premium и Admin)
         /// </summary>
         [HttpGet("summary")]
+        [Authorize(Roles = "Admin,Premium")]
         [ProducesResponseType(typeof(ApiResponse<FinancialSummaryDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<FinancialSummaryDto>>> GetFinancialSummary(
             [FromQuery] DateTime? startDate = null,
@@ -186,10 +192,12 @@ namespace PersonalFinanceApi.Controllers
         }
 
         /// <summary>
-        /// Получить распределение расходов по категориям
+        /// Получить распределение расходов по категориям (только для Premium и Admin)
         /// </summary>
         [HttpGet("expenses-by-category")]
+        [Authorize(Roles = "Admin,Premium")]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<CategorySummaryDto>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<IEnumerable<CategorySummaryDto>>>> GetExpensesByCategory(
             [FromQuery] DateTime? startDate = null,

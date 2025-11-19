@@ -401,5 +401,16 @@ namespace PersonalFinanceApi.Services
                 throw new Exception($"Ошибка при получении распределения расходов: {ex.Message}", ex);
             }
         }
+        public async Task<bool> UserOwnsTransactionAsync(int transactionId, int userId)
+        {
+            var transaction = await _transactionRepository.GetByIdAsync(transactionId);
+            return transaction?.UserId == userId;
+        }
+
+        public async Task<bool> UserOwnsAccountAsync(int accountId, int userId)
+        {
+            var account = await _accountRepository.GetByIdAsync(accountId);
+            return account?.UserId == userId;
+        }
     }
 }
